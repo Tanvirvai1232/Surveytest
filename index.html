@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<h2>Survey Diagnostic 🔥</h2>
+<h2>Survey Anti-Fraud Diagnostic 🔥</h2>
 
 <pre id="result">Checking...</pre>
 
@@ -10,34 +10,47 @@
 
 async function run() {
 
-let fingerprint =
+let output = "";
+
+fetch("https://api.ipify.org?format=json")
+.then(r => r.json())
+.then(ipData => {
+
+let ip = ipData.ip;
+
+fetch("https://ipapi.co/" + ip + "/json/")
+.then(r => r.json())
+.then(data => {
+
+let isp = data.org || "";
+let verdict = "✔ CLEAN";
+
+if (
+isp.match(/google|amazon|aws|azure|ovh|digitalocean|linode|vultr/i)
+) {
+verdict = "❌ DATACENTER DETECTED";
+}
+
+output += "VERDICT: " + verdict + "\n\n";
+
+output += "Public IP: " + ip + "\n";
+output += "Country: " + data.country_name + "\n";
+output += "Region: " + data.region + "\n";
+output += "ISP: " + isp + "\n";
+output += "ASN: " + data.asn + "\n";
+output += "Timezone: " + data.timezone + "\n\n";
+
+output += "Language: " + navigator.language + "\n";
+output += "Platform: " + navigator.platform + "\n\n";
+
+let fp =
 navigator.userAgent +
 screen.width +
 screen.height +
 navigator.language +
 navigator.platform;
 
-let output = "";
-
-output += "Language: " + navigator.language + "\n";
-output += "Platform: " + navigator.platform + "\n\n";
-
-fetch("https://api.ipify.org?format=json")
-.then(r => r.json())
-.then(ipData => {
-
-output += "Public IP: " + ipData.ip + "\n\n";
-
-fetch("https://ipapi.co/" + ipData.ip + "/json/")
-.then(r => r.json())
-.then(data => {
-
-output += "Country: " + data.country_name + "\n";
-output += "ISP: " + data.org + "\n";
-output += "ASN: " + data.asn + "\n";
-output += "Timezone: " + data.timezone + "\n\n";
-
-output += "Fingerprint:\n" + btoa(fingerprint) + "\n\n";
+output += "Fingerprint:\n" + btoa(fp) + "\n\n";
 
 const pc = new RTCPeerConnection({
 iceServers: []
@@ -45,16 +58,26 @@ iceServers: []
 
 pc.createDataChannel("");
 
-pc.createOffer().then(offer => pc.setLocalDescription(offer));
+pc.createOffer().then(offer =>
+pc.setLocalDescription(offer)
+);
 
 pc.onicecandidate = (ice) => {
 
 if (!ice || !ice.candidate || !ice.candidate.candidate)
 return;
 
-let candidate = ice.candidate.candidate;
+let cand = ice.candidate.candidate;
 
-output += "WebRTC Candidate:\n" + candidate;
+output += "WebRTC:\n" + cand + "\n\n";
+
+if (
+cand.includes("192.168") ||
+cand.includes("10.") ||
+cand.includes("172.")
+) {
+output += "⚠ POSSIBLE LOCAL IP LEAK\n";
+}
 
 document.getElementById("result").innerText = output;
 
