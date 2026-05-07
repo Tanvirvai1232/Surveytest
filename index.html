@@ -1,9 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Survey Test</title>
+  <title>Survey Diagnostic</title>
 </head>
 <body>
-<h1>Survey Test Site Working 🔥</h1>
+
+<h1>Survey Diagnostic Tool 🔥</h1>
+
+<pre id="result">Loading...</pre>
+
+<script>
+async function run() {
+
+let text = "";
+
+const ip = await fetch("https://ipapi.co/json/")
+.then(r => r.json());
+
+text += "IP: " + ip.ip + "\n";
+text += "Country: " + ip.country_name + "\n";
+text += "ISP: " + ip.org + "\n";
+text += "ASN: " + ip.asn + "\n";
+text += "Timezone: " + ip.timezone + "\n\n";
+
+text += "Browser Language: " + navigator.language + "\n";
+text += "Platform: " + navigator.platform + "\n";
+text += "UserAgent:\n" + navigator.userAgent + "\n\n";
+
+text += "Screen: " + screen.width + "x" + screen.height + "\n";
+
+document.getElementById("result").innerText = text;
+}
+
+run();
+</script>
+
 </body>
 </html>
