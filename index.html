@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Survey Anti-Fraud Dashboard</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Survey Dashboard</title>
 
 <style>
 
@@ -13,44 +11,18 @@ background:#0f172a;
 color:white;
 font-family:Arial;
 padding:15px;
-margin:0;
 }
 
-.title{
-font-size:26px;
-font-weight:bold;
-text-align:center;
-margin-bottom:20px;
-}
-
-.card{
+.box{
 background:#1e293b;
 padding:15px;
 border-radius:15px;
-margin-bottom:15px;
-box-shadow:0 0 10px rgba(0,0,0,.3);
-}
-
-.good{
-color:#22c55e;
-font-weight:bold;
-}
-
-.bad{
-color:#ef4444;
-font-weight:bold;
-}
-
-.warn{
-color:#f59e0b;
-font-weight:bold;
-}
-
-pre{
 white-space:pre-wrap;
-word-wrap:break-word;
-font-size:14px;
-line-height:1.5;
+word-break:break-word;
+}
+
+h1{
+text-align:center;
 }
 
 </style>
@@ -59,40 +31,26 @@ line-height:1.5;
 
 <body>
 
-<div class="title">
-🔥 Survey Anti-Fraud Dashboard
-</div>
+<h1>🔥 Survey Dashboard</h1>
 
-<div class="card">
-<pre id="output">Loading...</pre>
+<div class="box" id="out">
+Loading...
 </div>
 
 <script>
 
-async function run() {
+async function start(){
 
-try {
+try{
 
-const ipRes =
-await fetch(
-"https://api.ipify.org?format=json"
-);
+const res =
+await fetch("https://ipwho.is/");
 
-const ipData =
-await ipRes.json();
-
-const ip = ipData.ip;
-
-const infoRes =
-await fetch(
-"https://ipapi.co/" + ip + "/json/"
-);
-
-const data =
-await infoRes.json();
+const d =
+await res.json();
 
 let isp =
-(data.org || "").toLowerCase();
+(d.connection.isp || "").toLowerCase();
 
 let type =
 "ISP/UNKNOWN";
@@ -100,36 +58,16 @@ let type =
 let risk =
 "MEDIUM";
 
-const cloudList = [
-"google",
-"amazon",
-"aws",
-"azure",
-"digitalocean",
-"ovh",
-"linode",
-"vultr",
-"oracle",
-"microsoft"
-];
-
-const mobileList = [
-"t-mobile",
-"verizon",
-"att",
-"at&t",
-"spectrum",
-"comcast",
-"vodafone",
-"airtel",
-"jio"
-];
-
-if (
-cloudList.some(
-x => isp.includes(x)
-)
-) {
+if(
+isp.includes("google") ||
+isp.includes("amazon") ||
+isp.includes("aws") ||
+isp.includes("azure") ||
+isp.includes("ovh") ||
+isp.includes("digitalocean") ||
+isp.includes("linode") ||
+isp.includes("vultr")
+){
 
 type =
 "DATACENTER/CLOUD";
@@ -139,11 +77,12 @@ risk =
 
 }
 
-else if (
-mobileList.some(
-x => isp.includes(x)
-)
-) {
+if(
+isp.includes("mobile") ||
+isp.includes("wireless") ||
+isp.includes("telecom") ||
+isp.includes("spectrum")
+){
 
 type =
 "RESIDENTIAL/MOBILE";
@@ -153,94 +92,49 @@ risk =
 
 }
 
-let output = "";
-
-output +=
-"TYPE: " + type + "\n";
-
-output +=
-"RISK: " + risk + "\n\n";
-
-if (risk === "LOW") {
-
-output +=
-"STATUS: ✔ CLEAN\n\n";
-
-}
-
-else {
-
-output +=
-"STATUS: ❌ RISKY\n\n";
-
-}
-
-output +=
-"IP: " + ip + "\n";
-
-output +=
-"ISP: " + data.org + "\n";
-
-output +=
-"ASN: " + data.asn + "\n";
-
-output +=
-"Country: " +
-data.country_name + "\n";
-
-output +=
-"Region: " +
-data.region + "\n";
-
-output +=
-"Timezone: " +
-data.timezone + "\n\n";
-
-output +=
-"Language: " +
-navigator.language + "\n";
-
-output +=
-"Platform: " +
-navigator.platform + "\n\n";
-
 let fp =
 navigator.userAgent +
 screen.width +
 screen.height +
-navigator.language +
-navigator.platform;
+navigator.language;
 
-let fingerprint =
-btoa(fp);
+let text = "";
 
-let oldfp =
-localStorage.getItem(
-"fingerprint"
-);
+text +=
+"TYPE: " + type + "\n";
 
-if (!oldfp) {
+text +=
+"RISK: " + risk + "\n\n";
 
-localStorage.setItem(
-"fingerprint",
-fingerprint
-);
+text +=
+"IP: " + d.ip + "\n";
 
-}
+text +=
+"ISP: " + d.connection.isp + "\n";
 
-output +=
-"Fingerprint:\n" +
-fingerprint + "\n\n";
+text +=
+"ASN: " + d.connection.asn + "\n";
 
-if (
-oldfp &&
-oldfp !== fingerprint
-) {
+text +=
+"COUNTRY: " + d.country + "\n";
 
-output +=
-"⚠ Fingerprint Changed\n\n";
+text +=
+"CITY: " + d.city + "\n";
 
-}
+text +=
+"TIMEZONE: " + d.timezone.id + "\n\n";
+
+text +=
+"LANGUAGE: " +
+navigator.language + "\n";
+
+text +=
+"PLATFORM: " +
+navigator.platform + "\n\n";
+
+text +=
+"FINGERPRINT:\n" +
+btoa(fp) + "\n\n";
 
 const pc =
 new RTCPeerConnection({
@@ -250,63 +144,39 @@ iceServers:[]
 pc.createDataChannel("");
 
 pc.createOffer()
-.then(
-offer =>
-pc.setLocalDescription(
-offer
-)
-);
+.then(o=>pc.setLocalDescription(o));
 
-pc.onicecandidate =
-(ice) => {
+pc.onicecandidate = e => {
 
-if (
-!ice ||
-!ice.candidate ||
-!ice.candidate.candidate
-)
-return;
+if(
+!e ||
+!e.candidate ||
+!e.candidate.candidate
+) return;
 
-let cand =
-ice.candidate.candidate;
-
-output +=
-"WebRTC:\n" +
-cand +
-"\n\n";
-
-if (
-cand.includes("192.168") ||
-cand.includes("10.") ||
-cand.includes("172.")
-) {
-
-output +=
-"⚠ LOCAL IP LEAK DETECTED\n";
-
-}
+text +=
+"WEBRTC:\n" +
+e.candidate.candidate;
 
 document.getElementById(
-"output"
-).innerText =
-output;
+"out"
+).innerText = text;
 
 };
 
 }
-
 catch(err){
 
 document.getElementById(
-"output"
+"out"
 ).innerText =
-"ERROR:\n\n" + err;
+"ERROR:\n" + err;
 
 }
 
 }
 
-run();
+start();
 
 </script>
 
