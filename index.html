@@ -7,6 +7,7 @@
 <pre id="result">Checking...</pre>
 
 <script>
+
 async function run() {
 
 let fingerprint =
@@ -16,29 +17,48 @@ screen.height +
 navigator.language +
 navigator.platform;
 
+let output = "";
+
+output += "Language: " + navigator.language + "\n";
+output += "Platform: " + navigator.platform + "\n\n";
+
 fetch("https://api.ipify.org?format=json")
 .then(r => r.json())
 .then(ipData => {
 
-let ip = ipData.ip;
+output += "Public IP: " + ipData.ip + "\n\n";
 
-fetch("https://ipapi.co/" + ip + "/json/")
+fetch("https://ipapi.co/" + ipData.ip + "/json/")
 .then(r => r.json())
 .then(data => {
 
-document.getElementById("result").innerText =
-"IP: " + data.ip + "\n\n" +
+output += "Country: " + data.country_name + "\n";
+output += "ISP: " + data.org + "\n";
+output += "ASN: " + data.asn + "\n";
+output += "Timezone: " + data.timezone + "\n\n";
 
-"Country: " + data.country_name + "\n" +
-"Region: " + data.region + "\n" +
-"ISP: " + data.org + "\n" +
-"ASN: " + data.asn + "\n\n" +
+output += "Fingerprint:\n" + btoa(fingerprint) + "\n\n";
 
-"Timezone: " + data.timezone + "\n" +
-"Language: " + navigator.language + "\n" +
-"Platform: " + navigator.platform + "\n\n" +
+const pc = new RTCPeerConnection({
+iceServers: []
+});
 
-"Fingerprint:\n" + btoa(fingerprint);
+pc.createDataChannel("");
+
+pc.createOffer().then(offer => pc.setLocalDescription(offer));
+
+pc.onicecandidate = (ice) => {
+
+if (!ice || !ice.candidate || !ice.candidate.candidate)
+return;
+
+let candidate = ice.candidate.candidate;
+
+output += "WebRTC Candidate:\n" + candidate;
+
+document.getElementById("result").innerText = output;
+
+};
 
 });
 
@@ -47,6 +67,7 @@ document.getElementById("result").innerText =
 }
 
 run();
+
 </script>
 
 </body>
