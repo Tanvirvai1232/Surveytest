@@ -1,35 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Survey Dashboard</title>
+
+<title>Full Proxy & IP Tester</title>
 
 <style>
+
 body{
 background:#0f172a;
 color:white;
 font-family:Arial;
 padding:15px;
+margin:0;
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
 }
 
 .card{
 background:#1e293b;
 padding:15px;
 border-radius:15px;
+margin-bottom:15px;
 white-space:pre-wrap;
 word-break:break-word;
+box-shadow:0 0 10px rgba(0,0,0,.3);
 }
 
-h1{
-text-align:center;
+.good{
+color:#22c55e;
 }
+
+.bad{
+color:#ef4444;
+}
+
+.warn{
+color:#f59e0b;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>🔥 Survey Dashboard</h1>
+<h1>🔥 Full Proxy & IP Tester</h1>
 
 <div class="card" id="out">
 Loading...
@@ -37,7 +57,11 @@ Loading...
 
 <script>
 
+async function run(){
+
 let txt = "";
+
+txt += "===== DEVICE INFO =====\n\n";
 
 txt += "USER AGENT:\n";
 txt += navigator.userAgent + "\n\n";
@@ -46,20 +70,44 @@ txt += "LANGUAGE: ";
 txt += navigator.language + "\n";
 
 txt += "PLATFORM: ";
-txt += navigator.platform + "\n\n";
+txt += navigator.platform + "\n";
 
-txt += "SCREEN:\n";
-txt += screen.width + "x" + screen.height + "\n\n";
+txt += "CPU CORES: ";
+txt += navigator.hardwareConcurrency + "\n";
+
+txt += "RAM: ";
+txt += navigator.deviceMemory + " GB\n\n";
+
+txt += "===== SCREEN =====\n\n";
+
+txt += "WIDTH: ";
+txt += screen.width + "\n";
+
+txt += "HEIGHT: ";
+txt += screen.height + "\n";
+
+txt += "PIXEL RATIO: ";
+txt += window.devicePixelRatio + "\n\n";
+
+txt += "===== TIMEZONE =====\n\n";
+
+txt += Intl.DateTimeFormat()
+.resolvedOptions().timeZone + "\n\n";
+
+txt += "===== FINGERPRINT =====\n\n";
 
 let fp =
 navigator.userAgent +
 screen.width +
 screen.height +
 navigator.language +
-navigator.platform;
+navigator.platform +
+Intl.DateTimeFormat()
+.resolvedOptions().timeZone;
 
-txt += "FINGERPRINT:\n";
 txt += btoa(fp) + "\n\n";
+
+txt += "===== WEBRTC =====\n\n";
 
 const pc =
 new RTCPeerConnection({
@@ -69,7 +117,9 @@ iceServers:[]
 pc.createDataChannel("");
 
 pc.createOffer()
-.then(o => pc.setLocalDescription(o));
+.then(o =>
+pc.setLocalDescription(o)
+);
 
 pc.onicecandidate = e => {
 
@@ -79,8 +129,19 @@ if(
 !e.candidate.candidate
 ) return;
 
-txt += "WEBRTC:\n";
-txt += e.candidate.candidate;
+txt +=
+e.candidate.candidate + "\n\n";
+
+if(
+e.candidate.candidate.includes("192.") ||
+e.candidate.candidate.includes("10.") ||
+e.candidate.candidate.includes("172.")
+){
+
+txt +=
+"⚠ LOCAL IP LEAK DETECTED\n\n";
+
+}
 
 document.getElementById(
 "out"
@@ -95,6 +156,10 @@ document.getElementById(
 ).innerText = txt;
 
 },3000);
+
+}
+
+run();
 
 </script>
 
