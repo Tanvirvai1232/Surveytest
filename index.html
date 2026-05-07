@@ -6,13 +6,15 @@
 
 <pre id="result">Checking...</pre>
 
-<script src="https://openfpcdn.io/fingerprintjs/v3"></script>
-
 <script>
 async function run() {
 
-const fp = await FingerprintJS.load();
-const result = await fp.get();
+let fingerprint =
+navigator.userAgent +
+screen.width +
+screen.height +
+navigator.language +
+navigator.platform;
 
 fetch("https://api.ipify.org?format=json")
 .then(r => r.json())
@@ -36,7 +38,7 @@ document.getElementById("result").innerText =
 "Language: " + navigator.language + "\n" +
 "Platform: " + navigator.platform + "\n\n" +
 
-"Fingerprint ID:\n" + result.visitorId;
+"Fingerprint:\n" + btoa(fingerprint);
 
 });
 
