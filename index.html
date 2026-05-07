@@ -1,38 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Survey Diagnostic</title>
-</head>
 <body>
 
-<h1>Survey Diagnostic Tool 🔥</h1>
+<h2>Survey Diagnostic 🔥</h2>
 
-<pre id="result">Loading...</pre>
+<pre id="result">Checking...</pre>
 
 <script>
-async function run() {
+async function loadIP() {
+  try {
+    const response = await fetch("https://ipwho.is/");
+    const data = await response.json();
 
-let text = "";
+    document.getElementById("result").innerText =
+      "IP: " + data.ip + "\n" +
+      "Country: " + data.country + "\n" +
+      "City: " + data.city + "\n" +
+      "ISP: " + data.connection.isp + "\n" +
+      "ASN: " + data.connection.asn + "\n" +
+      "Timezone: " + data.timezone.id;
 
-const ip = await fetch("https://ipapi.co/json/")
-.then(r => r.json());
-
-text += "IP: " + ip.ip + "\n";
-text += "Country: " + ip.country_name + "\n";
-text += "ISP: " + ip.org + "\n";
-text += "ASN: " + ip.asn + "\n";
-text += "Timezone: " + ip.timezone + "\n\n";
-
-text += "Browser Language: " + navigator.language + "\n";
-text += "Platform: " + navigator.platform + "\n";
-text += "UserAgent:\n" + navigator.userAgent + "\n\n";
-
-text += "Screen: " + screen.width + "x" + screen.height + "\n";
-
-document.getElementById("result").innerText = text;
+  } catch (e) {
+    document.getElementById("result").innerText =
+      "API Error";
+  }
 }
 
-run();
+loadIP();
 </script>
 
 </body>
