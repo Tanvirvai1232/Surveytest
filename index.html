@@ -6,7 +6,14 @@
 
 <pre id="result">Checking...</pre>
 
+<script src="https://openfpcdn.io/fingerprintjs/v3"></script>
+
 <script>
+async function run() {
+
+const fp = await FingerprintJS.load();
+const result = await fp.get();
+
 fetch("https://api.ipify.org?format=json")
 .then(r => r.json())
 .then(ipData => {
@@ -18,22 +25,26 @@ fetch("https://ipapi.co/" + ip + "/json/")
 .then(data => {
 
 document.getElementById("result").innerText =
-"IP: " + data.ip + "\n" +
+"IP: " + data.ip + "\n\n" +
+
 "Country: " + data.country_name + "\n" +
 "Region: " + data.region + "\n" +
 "ISP: " + data.org + "\n" +
-"ASN: " + data.asn + "\n" +
+"ASN: " + data.asn + "\n\n" +
+
 "Timezone: " + data.timezone + "\n" +
 "Language: " + navigator.language + "\n" +
-"Platform: " + navigator.platform;
+"Platform: " + navigator.platform + "\n\n" +
+
+"Fingerprint ID:\n" + result.visitorId;
 
 });
 
-})
-.catch(err => {
-document.getElementById("result").innerText =
-"API Failed";
 });
+
+}
+
+run();
 </script>
 
 </body>
