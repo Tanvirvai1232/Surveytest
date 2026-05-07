@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<h2>Survey Anti-Fraud System 🔥</h2>
+<h2>ASN Intelligence System 🔥</h2>
 
 <pre id="result">Checking...</pre>
 
@@ -23,39 +23,63 @@ fetch("https://ipapi.co/" + ip + "/json/")
 .then(data => {
 
 let isp = (data.org || "").toLowerCase();
+let asn = data.asn || "";
 
-let verdict = "✔ CLEAN";
-let risk = "LOW";
+let type = "UNKNOWN";
+let risk = "MEDIUM";
+
+const cloudList = [
+"google",
+"amazon",
+"aws",
+"azure",
+"digitalocean",
+"ovh",
+"linode",
+"vultr",
+"oracle",
+"microsoft"
+];
+
+const mobileList = [
+"t-mobile",
+"verizon",
+"att",
+"at&t",
+"spectrum",
+"comcast",
+"vodafone",
+"airtel",
+"jio"
+];
 
 if (
-isp.match(/google|amazon|aws|azure|ovh|digitalocean|linode|vultr/)
+cloudList.some(x => isp.includes(x))
 ) {
-verdict = "❌ DATACENTER";
+type = "DATACENTER/CLOUD";
 risk = "HIGH";
 }
 
-if (
-isp.match(/vpn|proxy|hosting|cloud/)
+else if (
+mobileList.some(x => isp.includes(x))
 ) {
-verdict = "❌ VPN/PROXY DETECTED";
-risk = "HIGH";
-}
-
-if (
-isp.match(/t-mobile|verizon|att|spectrum/)
-) {
-verdict = "✔ RESIDENTIAL/MOBILE";
+type = "RESIDENTIAL/MOBILE";
 risk = "LOW";
 }
 
-output += "VERDICT: " + verdict + "\n";
+else {
+type = "ISP/UNKNOWN";
+risk = "MEDIUM";
+}
+
+output += "TYPE: " + type + "\n";
 output += "RISK: " + risk + "\n\n";
 
 output += "Public IP: " + ip + "\n";
+output += "ISP: " + data.org + "\n";
+output += "ASN: " + asn + "\n";
 output += "Country: " + data.country_name + "\n";
 output += "Region: " + data.region + "\n";
-output += "ISP: " + data.org + "\n";
-output += "ASN: " + data.asn + "\n";
 output += "Timezone: " + data.timezone + "\n\n";
 
 output += "Language: " + navigator.language + "\n";
