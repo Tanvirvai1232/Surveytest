@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<h2>Survey Anti-Fraud Diagnostic 🔥</h2>
+<h2>Survey Anti-Fraud System 🔥</h2>
 
 <pre id="result">Checking...</pre>
 
@@ -22,21 +22,39 @@ fetch("https://ipapi.co/" + ip + "/json/")
 .then(r => r.json())
 .then(data => {
 
-let isp = data.org || "";
+let isp = (data.org || "").toLowerCase();
+
 let verdict = "✔ CLEAN";
+let risk = "LOW";
 
 if (
-isp.match(/google|amazon|aws|azure|ovh|digitalocean|linode|vultr/i)
+isp.match(/google|amazon|aws|azure|ovh|digitalocean|linode|vultr/)
 ) {
-verdict = "❌ DATACENTER DETECTED";
+verdict = "❌ DATACENTER";
+risk = "HIGH";
 }
 
-output += "VERDICT: " + verdict + "\n\n";
+if (
+isp.match(/vpn|proxy|hosting|cloud/)
+) {
+verdict = "❌ VPN/PROXY DETECTED";
+risk = "HIGH";
+}
+
+if (
+isp.match(/t-mobile|verizon|att|spectrum/)
+) {
+verdict = "✔ RESIDENTIAL/MOBILE";
+risk = "LOW";
+}
+
+output += "VERDICT: " + verdict + "\n";
+output += "RISK: " + risk + "\n\n";
 
 output += "Public IP: " + ip + "\n";
 output += "Country: " + data.country_name + "\n";
 output += "Region: " + data.region + "\n";
-output += "ISP: " + isp + "\n";
+output += "ISP: " + data.org + "\n";
 output += "ASN: " + data.asn + "\n";
 output += "Timezone: " + data.timezone + "\n\n";
 
@@ -76,7 +94,7 @@ cand.includes("192.168") ||
 cand.includes("10.") ||
 cand.includes("172.")
 ) {
-output += "⚠ POSSIBLE LOCAL IP LEAK\n";
+output += "⚠ LOCAL IP LEAK DETECTED\n";
 }
 
 document.getElementById("result").innerText = output;
