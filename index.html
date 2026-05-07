@@ -10,22 +10,17 @@
 
 async function run() {
 
-let output = "";
+try {
 
-fetch("https://api.ipify.org?format=json")
-.then(r => r.json())
-.then(ipData => {
+const ipRes = await fetch("https://api.ipify.org?format=json");
+const ipData = await ipRes.json();
 
-let ip = ipData.ip;
-
-fetch("https://ipapi.co/" + ip + "/json/")
-.then(r => r.json())
-.then(data => {
+const infoRes = await fetch("https://ipapi.co/" + ipData.ip + "/json/");
+const data = await infoRes.json();
 
 let isp = (data.org || "").toLowerCase();
-let asn = data.asn || "";
 
-let type = "UNKNOWN";
+let type = "ISP/UNKNOWN";
 let risk = "MEDIUM";
 
 const cloudList = [
@@ -53,81 +48,41 @@ const mobileList = [
 "jio"
 ];
 
-if (
-cloudList.some(x => isp.includes(x))
-) {
+if (cloudList.some(x => isp.includes(x))) {
 type = "DATACENTER/CLOUD";
 risk = "HIGH";
 }
 
-else if (
-mobileList.some(x => isp.includes(x))
-) {
+else if (mobileList.some(x => isp.includes(x))) {
 type = "RESIDENTIAL/MOBILE";
 risk = "LOW";
 }
 
-else {
-type = "ISP/UNKNOWN";
-risk = "MEDIUM";
-}
+let output = "";
 
 output += "TYPE: " + type + "\n";
 output += "RISK: " + risk + "\n\n";
 
-output += "Public IP: " + ip + "\n";
+output += "Public IP: " + ipData.ip + "\n";
 output += "ISP: " + data.org + "\n";
-output += "ASN: " + asn + "\n";
+output += "ASN: " + data.asn + "\n";
 output += "Country: " + data.country_name + "\n";
 output += "Region: " + data.region + "\n";
 output += "Timezone: " + data.timezone + "\n\n";
 
 output += "Language: " + navigator.language + "\n";
-output += "Platform: " + navigator.platform + "\n\n";
-
-let fp =
-navigator.userAgent +
-screen.width +
-screen.height +
-navigator.language +
-navigator.platform;
-
-output += "Fingerprint:\n" + btoa(fp) + "\n\n";
-
-const pc = new RTCPeerConnection({
-iceServers: []
-});
-
-pc.createDataChannel("");
-
-pc.createOffer().then(offer =>
-pc.setLocalDescription(offer)
-);
-
-pc.onicecandidate = (ice) => {
-
-if (!ice || !ice.candidate || !ice.candidate.candidate)
-return;
-
-let cand = ice.candidate.candidate;
-
-output += "WebRTC:\n" + cand + "\n\n";
-
-if (
-cand.includes("192.168") ||
-cand.includes("10.") ||
-cand.includes("172.")
-) {
-output += "⚠ LOCAL IP LEAK DETECTED\n";
-}
+output += "Platform: " + navigator.platform + "\n";
 
 document.getElementById("result").innerText = output;
 
-};
+}
 
-});
+catch(err) {
 
-});
+document.getElementById("result").innerText =
+"ERROR:\n" + err;
+
+}
 
 }
 
