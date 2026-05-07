@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Survey Dashboard</title>
 
 <style>
-
 body{
-background:#111827;
+background:#0f172a;
 color:white;
 font-family:Arial;
 padding:15px;
 }
 
-.box{
-background:#1f2937;
+.card{
+background:#1e293b;
 padding:15px;
-border-radius:12px;
+border-radius:15px;
 white-space:pre-wrap;
 word-break:break-word;
 }
@@ -26,7 +23,6 @@ word-break:break-word;
 h1{
 text-align:center;
 }
-
 </style>
 
 </head>
@@ -35,106 +31,70 @@ text-align:center;
 
 <h1>🔥 Survey Dashboard</h1>
 
-<div class="box" id="out">
+<div class="card" id="out">
 Loading...
 </div>
 
 <script>
 
-fetch("https://ipapi.co/json/")
-.then(r => r.json())
-.then(d => {
+let txt = "";
 
-let isp =
-(d.org || "").toLowerCase();
+txt += "USER AGENT:\n";
+txt += navigator.userAgent + "\n\n";
 
-let type =
-"UNKNOWN";
+txt += "LANGUAGE: ";
+txt += navigator.language + "\n";
 
-let risk =
-"MEDIUM";
+txt += "PLATFORM: ";
+txt += navigator.platform + "\n\n";
 
-if(
-isp.includes("google") ||
-isp.includes("amazon") ||
-isp.includes("aws") ||
-isp.includes("azure") ||
-isp.includes("ovh") ||
-isp.includes("digitalocean")
-){
-
-type =
-"DATACENTER/CLOUD";
-
-risk =
-"HIGH";
-
-}
-
-else{
-
-type =
-"RESIDENTIAL/MOBILE";
-
-risk =
-"LOW";
-
-}
+txt += "SCREEN:\n";
+txt += screen.width + "x" + screen.height + "\n\n";
 
 let fp =
 navigator.userAgent +
 screen.width +
 screen.height +
-navigator.language;
+navigator.language +
+navigator.platform;
 
-let txt = "";
+txt += "FINGERPRINT:\n";
+txt += btoa(fp) + "\n\n";
 
-txt +=
-"TYPE: " + type + "\n";
+const pc =
+new RTCPeerConnection({
+iceServers:[]
+});
 
-txt +=
-"RISK: " + risk + "\n\n";
+pc.createDataChannel("");
 
-txt +=
-"IP: " + d.ip + "\n";
+pc.createOffer()
+.then(o => pc.setLocalDescription(o));
 
-txt +=
-"ISP: " + d.org + "\n";
+pc.onicecandidate = e => {
 
-txt +=
-"ASN: " + d.asn + "\n";
+if(
+!e ||
+!e.candidate ||
+!e.candidate.candidate
+) return;
 
-txt +=
-"COUNTRY: " + d.country_name + "\n";
-
-txt +=
-"TIMEZONE: " + d.timezone + "\n\n";
-
-txt +=
-"LANGUAGE: " +
-navigator.language + "\n";
-
-txt +=
-"PLATFORM: " +
-navigator.platform + "\n\n";
-
-txt +=
-"FINGERPRINT:\n" +
-btoa(fp);
+txt += "WEBRTC:\n";
+txt += e.candidate.candidate;
 
 document.getElementById(
 "out"
 ).innerText = txt;
 
-})
-.catch(e => {
+};
+
+setTimeout(() => {
 
 document.getElementById(
 "out"
-).innerText =
-"ERROR:\n" + e;
+).innerText = txt;
 
-});
+},3000);
 
 </script>
 
